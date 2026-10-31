@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="app-container">
+    
+    <!-- ŰRLAP SZEKCIÓ -->
+    <div class="form-card">
+        <h2 class="section-title">Kérj valamit karácsonyra!</h2>
+        <form action="." method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                {{ form.family_member.label_tag }}
+                {{ form.family_member }}
+            </div>
+            
+            <!-- Rejtett ajándék mezők -->
+            <div id="gift-fields" style="display: none;">
+                <div class="form-group">
+                    {{ form.name.label_tag }}
+                    {{ form.name }}
+                </div>
+                <div class="form-group">
+                    {{ form.link.label_tag }}
+                    {{ form.link }}
+                </div>
+                <button type="submit" class="btn-submit">🎁 Kívánság Mentése</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- LISTA SZEKCIÓ -->
+    <h2 class="section-title list-title">Eddigi kívánságok</h2>
+    <div class="mobile-gift-list">
+        {% for member in family_members %}
+        <div class="mobile-card">
+            <div class="card-header">
+                🎁 <span>{{ member.name }} kívánságlistája</span>
+            </div>
+            
+            <div class="card-body">
+                {% if member.gift_set.all %}
+                    <!-- Ha vannak ajándékok, kilistázzuk -->
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        {% for gift in member.gift_set.all %}
+                        <div style="border-bottom: 1px solid #f0f0f0; padding-bottom: 15px;">
+                            <h3 class="gift-title" style="margin-bottom: 10px;">{{ gift.name }}</h3>
+                            <div class="card-actions" style="padding: 0; display: flex; gap: 10px;">
+                                {% if gift.link %}
+                                    <a href="{{ gift.link }}" target="_blank" class="btn btn-link" style="padding: 8px 12px; font-size: 0.85rem; flex: none;">🔗 Link</a>
+                                {% endif %}
+                                <a href="{% url 'christmas_wishlist_app:gift-delete' gift.id %}" class="btn btn-delete" style="padding: 8px 12px; font-size: 0.85rem; flex: none;">🗑️ Törlés</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <!-- Ha még nem kért semmit -->
+                    <p style="color: #888; font-style: italic; margin: 0;">Még nem kért semmit karácsonyra. 🎄</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<!-- STÍLUSOK (CSS) ÉS LOGIKA (JS) -->
+<style>
+    body {
+        background-color: #f4f7f6;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    .app-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .section-title {
+        text-align: center;
+        color: #0d5c2e;
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+    }
+
+    .list-title {
+        margin-top: 40px;
+    }
+
+    /* ŰRLAP KÁRTYA STÍLUSOK */
+    .form-card {
+        background: #ffffff;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border-top: 6px solid #0d5c2e;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .form-group select, 
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 16px;
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+    }
+
+    .form-group select:focus, 
+    .form-group input:focus {
+        border-color: #0d5c2e;
+        outline: none;
+    }
+
+    .btn-submit {
+        width: 100%;
+        background-color: #0d5c2e;
+        color: white;
+        border: none;
+        padding: 14px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    /* LISTA KÁRTYA STÍLUSOK */
+    .mobile-gift-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .mobile-card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+        border-left: 6px solid #c32323;
+    }
+
+    .card-header {
+        background-color: #fcfcfc;
+        padding: 12px 16px;
+        border-bottom: 1px solid #f0f0f0;
+        font-size: 0.9rem;
+        color: #555;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .card-body {
+        padding: 16px;
+    }
+
+    .gift-title {
+        margin: 0;
+        font-size: 1.25rem;
+        color: #222;
+        font-weight: 600;
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 12px;
+        padding: 0 16px 16px 16px;
+    }
+
+    .btn {
+        flex: 1;
+        text-align: center;
+        padding: 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: opacity 0.2s;
+    }
+
+    .btn-link {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .btn-delete {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 30px;
+        background: #fff;
+        border-radius: 12px;
+        color: #666;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var select = document.getElementById('id_family_member'); 
+        var fields = document.getElementById('gift-fields');
+
+        function toggleFields() {
+            if (select && select.value) {
+                fields.style.display = 'block';
+            } else {
+                fields.style.display = 'none';
+            }
+        }
+
+        if (select) {
+            select.addEventListener('change', toggleFields);
+            toggleFields(); 
+        }
+    });
+</script>
+{% endblock %}
